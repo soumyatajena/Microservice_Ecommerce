@@ -28,7 +28,7 @@ jobs:
       run: dotnet test --no-build --verbosity normal
 
     - name: Checkout master branch
-      run: git checkout master
+      run: git checkout origin/master
       
     - name: Merge dev into master
       run: |
