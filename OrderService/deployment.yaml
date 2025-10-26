@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderservice
+  labels:
+    app: orderservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: orderservice
+  template:
+    metadata:
+      labels:
+        app: orderservice
+    spec:
+      containers:
+      - name: orderservice
+        image: soumyatajena/orderservice:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderservice
+spec:
+  selector:
+    app: orderservice
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP
