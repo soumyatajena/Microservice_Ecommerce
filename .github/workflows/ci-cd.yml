@@ -29,9 +29,9 @@ jobs:
 
     - name: Build Docker images
       run: |
-        docker build -t soumyatajena/catalogservice:latest ./CatalogService
-        docker build -t soumyatajena/orderservice:latest ./OrderService
-        docker build -t soumyatajena/authservice:latest ./AuthService
+        docker build -t soumyatajena/catalogservice:latest CatalogService
+        docker build -t soumyatajena/orderservice:latest OrderService
+        docker build -t soumyatajena/authservice:latest AuthService
 
     - name: Push Docker images
       # Add your docker login here
