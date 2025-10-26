@@ -87,7 +87,6 @@ jobs:
         driver: docker
         cpus: 2
         memory: 4000
-        kubernetes-version: v1.25.0
         wait: true
 
     # Load images into Minikube's Docker environment
