@@ -27,6 +27,7 @@ jobs:
     - name: Run tests
       run: dotnet test --no-build --verbosity normal
 
+    # --- Git merge steps for dev -> master ---
     - name: Checkout repository with full history
       uses: actions/checkout@v4
       with:
@@ -36,23 +37,22 @@ jobs:
       run: |
         git config user.name "${{ secrets.DOCKER_USERNAME }}"
         git config user.email "${{ secrets.GIT_USER_EMAIL }}"
-    
+
     - name: Fetch all branches
       run: git fetch origin
-    
+
     - name: Create local master branch tracking remote
       run: git checkout -B master origin/master
-    
+
     - name: Merge dev into master
       run: |
         git merge origin/dev --no-ff --no-commit || (echo "Merge conflict detected. Aborting." && exit 1)
         git commit -m "Auto-merged dev into master [skip ci]" || echo "Nothing to commit"
-    
+
     - name: Push master branch
       run: git push origin master
 
-
-
+    # --- Docker image build and push steps ---
     - name: Build CatalogService Docker image
       working-directory: ./CatalogService
       run: docker build -t soumyatajena/catalogservice:latest .
@@ -79,3 +79,40 @@ jobs:
 
     - name: Push AuthService Docker image
       run: docker push soumyatajena/authservice:latest
+
+    # --- Minikube setup and Kubernetes deployment ---
+    - name: Set up Minikube
+      uses: medyagh/setup-minikube@latest
+      with:
+        driver: docker
+        cpus: 2
+        memory: 4000
+        kubernetes-version: v1.25.0
+        wait: true
+
+    # Load images into Minikube's Docker environment
+    - name: Load CatalogService image into Minikube
+      run: minikube image load soumyatajena/catalogservice:latest
+
+    - name: Load OrderService image into Minikube
+      run: minikube image load soumyatajena/orderservice:latest
+
+    - name: Load AuthService image into Minikube
+      run: minikube image load soumyatajena/authservice:latest
+
+    # Apply Kubernetes manifests to deploy services
+    - name: Deploy CatalogService to Minikube
+      run: kubectl apply -f k8s/catalogservice-deployment.yaml
+
+    - name: Deploy OrderService to Minikube
+      run: kubectl apply -f k8s/orderservice-deployment.yaml
+
+    - name: Deploy AuthService to Minikube
+      run: kubectl apply -f k8s/authservice-deployment.yaml
+
+    # Optional: check pod status
+    - name: Get pods status
+      run: kubectl get pods
+
+    - name: Get services status
+      run: kubectl get svc
