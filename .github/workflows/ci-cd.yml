@@ -27,17 +27,30 @@ jobs:
     - name: Run tests
       run: dotnet test --no-build --verbosity normal
 
-    - name: Checkout master branch
+    - name: Checkout repository with full history
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history to have all branches
+
+    - name: Configure git for commit
+      run: |
+        git config user.name "${{ secrets.DOCKER_USERNAME }}"
+        git config user.email "${{ secrets.GIT_USER_EMAIL }}"
+    
+    - name: Fetch all branches
+      run: git fetch origin
+    
+    - name: Create local master branch tracking remote
       run: git checkout -B master origin/master
-      
+    
     - name: Merge dev into master
       run: |
-       git config user.name "${{ secrets.DOCKER_USERNAME }}"
-       git config user.email "${{ secrets.GIT_USER_EMAIL }}"
-        git fetch origin dev
         git merge origin/dev --no-ff --no-commit || (echo "Merge conflict detected. Aborting." && exit 1)
         git commit -m "Auto-merged dev into master [skip ci]" || echo "Nothing to commit"
-        git push origin master
+    
+    - name: Push master branch
+      run: git push origin master
+
 
 
     - name: Build CatalogService Docker image
