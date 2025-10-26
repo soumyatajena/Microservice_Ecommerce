@@ -101,13 +101,13 @@ jobs:
 
     # Apply Kubernetes manifests to deploy services
     - name: Deploy CatalogService to Minikube
-      run: kubectl apply -f k8s/catalogservice-deployment.yaml
+      run: kubectl apply -f CatalogService/deployment.yaml
 
     - name: Deploy OrderService to Minikube
-      run: kubectl apply -f k8s/orderservice-deployment.yaml
+      run: kubectl apply -f OrderService/deployment.yaml
 
     - name: Deploy AuthService to Minikube
-      run: kubectl apply -f k8s/authservice-deployment.yaml
+      run: kubectl apply -f AuthService/deployment.yaml
 
     # Optional: check pod status
     - name: Get pods status
