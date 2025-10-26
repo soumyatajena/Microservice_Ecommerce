@@ -1,0 +1,42 @@
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET 9 SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Run tests
+      run: dotnet test --no-build --verbosity normal
+
+    - name: Build Docker images
+      run: |
+        docker build -t soumyatajena/catalogservice:latest ./CatalogService
+        docker build -t soumyatajena/orderservice:latest ./OrderService
+        docker build -t soumyatajena/authservice:latest ./AuthService
+
+    - name: Push Docker images
+      # Add your docker login here
+      run: |
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        docker push soumyatajena/catalogservice:latest
+        docker push soumyatajena/orderservice:latest
+        docker push soumyatajena/authservice:latest
